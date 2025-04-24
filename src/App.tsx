@@ -4,12 +4,6 @@ import { PreloadAPI } from 'electron/preload';
 
 const nativeApi = (window as any).nativeApi as PreloadAPI;
 
-const openai = new OpenAI({
-  // ok we're gonna have to delete this git repo, key is legit right here
-  apiKey: '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',
-  dangerouslyAllowBrowser: true// building
-});
-
 const VisibilityContext = createContext<boolean>(false);
 
 export default function App() {
