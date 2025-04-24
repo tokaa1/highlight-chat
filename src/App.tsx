@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, createContext, useContext } from 'react';
 import OpenAI from 'openai';
 import { PreloadAPI } from 'electron/preload';
-import { atom, useAtom, useAtomValue } from 'jotai';
 
 const nativeApi = (window as any).nativeApi as PreloadAPI;
 
@@ -11,10 +10,10 @@ const openai = new OpenAI({
   dangerouslyAllowBrowser: true// building
 });
 
-const isVisibleAtom = atom(false);
+const VisibilityContext = createContext<boolean>(false);
 
 export default function App() {
-  const [isVisible, setIsVisible] = useAtom(isVisibleAtom);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const handleVisibilityChange = (visible: boolean) => {
@@ -28,19 +27,23 @@ export default function App() {
     };
   }, []);
 
-  return <div 
-    className='h-full w-full m-0 p-0 transition-opacity' 
-    style={{ 
-      opacity: isVisible ? 1 : 0,
-      transition: isVisible ? 'opacity 200ms ease-in' : 'none'
-    }}
-  >
-    <Header />
-  </div>
+  return (
+    <VisibilityContext.Provider value={isVisible}>
+      <div 
+        className='h-full w-full m-0 p-0 transition-opacity' 
+        style={{ 
+          opacity: isVisible ? 1 : 0,
+          transition: isVisible ? 'opacity 200ms ease-in' : 'none'
+        }}
+      >
+        <Header />
+      </div>
+    </VisibilityContext.Provider>
+  );
 }
 
 function Header() {
-  const isVisible = useAtomValue(isVisibleAtom);
+  const isVisible = useContext(VisibilityContext);
 
   return <div className='font-sans pointer-events-auto px-8 box-border w-[430px] h-[80px] flex bg-neutral-950/10 backdrop-blur-md rounded-[35px] absolute bottom-20 left-1/2 transform -translate-x-1/2 shadow-lg items-center justify-center' style={{
     borderRadius: '35px',
