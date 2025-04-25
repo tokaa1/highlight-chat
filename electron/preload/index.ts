@@ -5,7 +5,6 @@ export type PreloadAPI = {
   off: (...args: Parameters<typeof ipcRenderer.off>) => void
   send: (...args: Parameters<typeof ipcRenderer.send>) => void
   invoke: (...args: Parameters<typeof ipcRenderer.invoke>) => void
-  takeScreenshot: (x: number, y: number, width: number, height: number) => Promise<string>
   enableMouse: () => void
   disableMouse: () => void
   onWindowVisibilityChange: (callback: (isVisible: boolean) => void) => void
@@ -27,9 +26,6 @@ contextBridge.exposeInMainWorld('nativeApi', {
   invoke(...args: Parameters<typeof ipcRenderer.invoke>) {
     const [channel, ...omit] = args
     return ipcRenderer.invoke(channel, ...omit)
-  },
-  takeScreenshot: (x: number, y: number, width: number, height: number) => {
-    return ipcRenderer.invoke('take-screenshot', { x, y, width, height })
   },
   enableMouse: () => ipcRenderer.invoke('enable-mouse'),
   disableMouse: () => ipcRenderer.invoke('disable-mouse'),

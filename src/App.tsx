@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, createContext, useContext } from 'react';
 import OpenAI from 'openai';
 import { PreloadAPI } from 'electron/preload';
-
-const nativeApi = (window as any).nativeApi as PreloadAPI;
-
-const VisibilityContext = createContext<boolean>(false);
+import ScreenshotOverlay from './components/ScreenshotUI';
+import { VisibilityContext } from './contexts/visibility';
+import Header from './components/Header';
+import { nativeApi } from './util/native';
 
 export default function App() {
   const [isVisible, setIsVisible] = useState(false);
+  const [isScreenshotMode, setIsScreenshotMode] = useState(false);
 
   useEffect(() => {
     const handleVisibilityChange = (visible: boolean) => {
@@ -15,56 +16,30 @@ export default function App() {
     };
 
     nativeApi.onWindowVisibilityChange(handleVisibilityChange);
-
-    return () => {
-      nativeApi.off('window-visibility-changed', (_, visible) => handleVisibilityChange(visible));
-    };
+  }, []);
+  useEffect(() => {
+    nativeApi.on('screenshot-keybind', () => {
+      setIsScreenshotMode(true);
+      console.log('screenshot-keybind');
+    });
+    nativeApi.on('reset-screenshot', () => {
+      setIsScreenshotMode(false);
+      console.log('reset-screenshot');
+    });
   }, []);
 
   return (
     <VisibilityContext.Provider value={isVisible}>
       <div 
-        className='h-full w-full m-0 p-0 transition-opacity' 
+        className='h-full w-full m-0 p-0' 
         style={{ 
           opacity: isVisible ? 1 : 0,
           transition: isVisible ? 'opacity 200ms ease-in' : 'none'
         }}
       >
+        {isScreenshotMode && <ScreenshotOverlay />}
         <Header />
       </div>
     </VisibilityContext.Provider>
   );
-}
-
-function Header() {
-  const isVisible = useContext(VisibilityContext);
-
-  return <div className='font-sans pointer-events-auto px-8 box-border w-[430px] h-[80px] flex bg-neutral-950/10 backdrop-blur-md rounded-[35px] absolute bottom-20 left-1/2 transform -translate-x-1/2 shadow-lg items-center justify-center' style={{
-    borderRadius: '35px',
-    border: '1px solid transparent',
-    backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), linear-gradient(to right, #80808077, #00000055, #ffffff44)',
-    backgroundOrigin: 'border-box',
-    backgroundClip: 'padding-box, border-box',
-    transform: `translate(-50%, ${isVisible ? '0' : '100px'})`,
-    opacity: isVisible ? 1 : 0,
-    transition: isVisible ? 'transform 200ms ease-out' : 'none'
-  }}>
-    <div className='w-full h-[26px] text-xs items-center justify-center flex gap-4'>
-      <span className='flex items-center'>
-        <span className='mr-1.5 text-white'>Toggle visibility</span>
-        <span className='bg-white px-1 rounded mr-1 text-black'>⌘</span>
-        <span className='bg-white px-1 rounded mr-1 text-black'>B</span>
-      </span>
-      <span className='flex items-center'>
-        <span className='mr-1.5 text-white'>Screenshot</span>
-        <span className='bg-white px-1 rounded mr-1 text-black'>⌘</span>
-        <span className='bg-white px-1 rounded mr-1 text-black'>H</span>
-      </span>
-      <span className='flex items-center'>
-        <span className='mr-1.5 text-white'>Chat</span>
-        <span className='bg-white px-1 rounded mr-1 text-black'>⌘</span>
-        <span className='bg-white px-1 rounded mr-1 text-black'>D</span>
-      </span>
-    </div>
-  </div>
 }

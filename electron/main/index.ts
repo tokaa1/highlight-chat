@@ -52,6 +52,46 @@ function toggleWindowVisibility() {
   }
 }
 
+async function takeScreenshot(rect: { x: number; y: number; width: number; height: number }) {
+  try {
+    // Request screen capture permissions
+    const sources = await desktopCapturer.getSources({ 
+      types: ['screen'], 
+      thumbnailSize: { width: 0, height: 0 },
+      fetchWindowIcons: false 
+    });
+
+    if (!sources || sources.length === 0) {
+      throw new Error('No screen sources available');
+    }
+
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const source = sources.find(s => s.display_id === primaryDisplay.id.toString());
+    
+    if (!source) {
+      throw new Error('Primary display not found');
+    }
+
+    const image = source.thumbnail.crop({
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height
+    });
+
+    const buffer = image.toPNG();
+    const downloadsPath = app.getPath('downloads');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filePath = path.join(downloadsPath, `screenshot-${timestamp}.png`);
+    
+    require('fs').writeFileSync(filePath, buffer);
+    return filePath;
+  } catch (error) {
+    console.error('Screenshot error:', error);
+    throw new Error('Failed to capture screenshot. Please ensure screen recording permissions are granted.');
+  }
+}
+
 async function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
@@ -84,7 +124,7 @@ async function createWindow() {
     //vibrancy: 'fullscreen-ui',    // on MacOS
     //backgroundMaterial: 'acrylic' // on Windows 11
   })
-  win.setIgnoreMouseEvents(true, {forward: true});
+  //win.setIgnoreMouseEvents(true, {forward: true});
 
   win.webContents.on('before-input-event', (event, input) => {
     if (input.key === 'F12') {
@@ -111,14 +151,31 @@ app.whenReady().then(() => {
   createWindow();
   
   // register global shortcut cmd/ctrl + B
-  const shortcut = process.platform === 'darwin' ? 'CommandOrControl+B' : 'Ctrl+B';
-  globalShortcut.register(shortcut, toggleWindowVisibility);
+  globalShortcut.register(process.platform === 'darwin' ? 'CommandOrControl+B' : 'Ctrl+B', toggleWindowVisibility);
+  globalShortcut.register(process.platform === 'darwin' ? 'CommandOrControl+H' : 'Ctrl+H', () => {
+    if (win) {
+      win.webContents.send('screenshot-keybind');
+    }
+  });
+  globalShortcut.register(process.platform === 'darwin' ? 'CommandOrControl+D' : 'Ctrl+D', () => {
+    if (win) {
+      win.webContents.send('reset-screenshot');
+    }
+  });
 
   ipcMain.handle('enable-mouse', () => {
     win?.setIgnoreMouseEvents(false, {forward: true});
   })
   ipcMain.handle('disable-mouse', () => {
     win?.setIgnoreMouseEvents(true, {forward: true});
+  })
+  ipcMain.handle('take-screenshot', async (_, rect) => {
+    try {
+      return await takeScreenshot(rect);
+    } catch (error) {
+      console.error('Screenshot handler error:', error);
+      throw error;
+    }
   })
 })
 

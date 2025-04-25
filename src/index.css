@@ -12,6 +12,7 @@ body {
   -webkit-backdrop-filter: blur(10px);
   app-region: no-drag;
   user-select: none;
+  overflow: hidden;
 }
 
 :root {
