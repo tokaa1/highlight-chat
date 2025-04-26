@@ -3,7 +3,7 @@ import { useVisibility } from "@/contexts/visibility";
 export default function Header() {
   const isVisible = useVisibility();
 
-  return <div className='font-sans pointer-events-auto px-8 box-border w-[430px] h-[80px] flex flex-col bg-neutral-950/10 backdrop-blur-md rounded-[35px] absolute bottom-20 left-1/2 transform -translate-x-1/2 shadow-lg items-center justify-center' style={{
+  return <div className='font-sans pointer-events-auto px-8 box-border w-[430px] h-[80px] flex flex-col bg-neutral-950/10 backdrop-blur-md rounded-[35px] absolute bottom-[80px] left-1/2 transform -translate-x-1/2 shadow-lg items-center justify-center' style={{
     borderRadius: '35px',
     border: '1px solid transparent',
     backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), linear-gradient(to right, #80808077, #00000055, #ffffff44)',

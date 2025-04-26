@@ -115,8 +115,9 @@ async function createWindow() {
     //vibrancy: 'fullscreen-ui',    // on MacOS
     //backgroundMaterial: 'acrylic' // on Windows 11
   })
-  //win.setIgnoreMouseEvents(true, {forward: true});
 
+  win.setIgnoreMouseEvents(true, {forward: true});
+  win.webContents.toggleDevTools();
   win.webContents.on('before-input-event', (event, input) => {
     if (input.key === 'F12') {
       event.preventDefault();

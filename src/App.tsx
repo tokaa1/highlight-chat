@@ -26,18 +26,20 @@ export default function App() {
 
     });
   }, []);
-
+  //absolute bottom-20 left-1/2 transform -translate-x-1/2
   return (
     <VisibilityContext.Provider value={isVisible}>
-      <div 
-        className='h-full w-full m-0 p-0' 
-        style={{ 
+      <div
+        className='h-full w-full m-0 p-0'
+        style={{
           opacity: isVisible ? 1 : 0,
           transition: isVisible ? 'opacity 200ms ease-in' : 'none'
         }}
       >
         <Header />
-        {currentScreenshot && <img src={currentScreenshot} alt="Screenshot" />}
+        <div className='absolute m-0 p-0 w-[500px] min-h-[180px] bottom-[180px] left-1/2 transform -translate-x-1/2 bg-red-700'>
+          {currentScreenshot && <img src={currentScreenshot} alt="Screenshot" />}
+        </div>
       </div>
     </VisibilityContext.Provider>
   );
