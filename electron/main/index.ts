@@ -3,6 +3,9 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
+import { execSync } from 'child_process';
+import fs from 'node:fs';
+import sharp from 'sharp';
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -57,16 +60,15 @@ async function takeScreenshot() {
   }
 
   try {
-    const { execSync } = require('child_process');
-    const fs = require('fs');
-    const path = require('path');
-
     // Create a temporary file path
     const tempDir = app.getPath('temp');
     const tempFilePath = path.join(tempDir, `screenshot-${Date.now()}.png`);
 
-    // Use screencapture to take the screenshot with the specified region
     execSync(`screencapture -i "${tempFilePath}"`);
+
+    // Get image dimensions using sharp
+    const metadata = await sharp(tempFilePath).metadata();
+    const { width, height } = metadata;
 
     // Read the file and convert to base64
     const imageBuffer = fs.readFileSync(tempFilePath);
@@ -76,7 +78,11 @@ async function takeScreenshot() {
     // Clean up the temporary file
     fs.unlinkSync(tempFilePath);
 
-    return dataUrl;
+    return {
+      imageDataUrl: dataUrl,
+      width,
+      height
+    };
   } catch (error) {
     console.error('Screenshot error:', error);
     throw new Error('Failed to capture screenshot');

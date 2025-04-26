@@ -22,11 +22,13 @@
   "dependencies": {
     "@squircle-js/react": "^1.2.17",
     "electron-updater": "^6.3.9",
+    "image-size": "^2.0.2",
     "jotai": "^2.12.3",
     "ollama": "^0.5.14",
     "openai": "^4.94.0",
     "react-markdown": "^10.1.0",
-    "react-syntax-highlighter": "^15.6.1"
+    "react-syntax-highlighter": "^15.6.1",
+    "sharp": "^0.34.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.2",

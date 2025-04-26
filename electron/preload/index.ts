@@ -12,13 +12,20 @@ export type PreloadAPI = {
   off: (...args: Parameters<typeof ipcRenderer.off>) => void
   send: (...args: Parameters<typeof ipcRenderer.send>) => void
   invoke: (...args: Parameters<typeof ipcRenderer.invoke>) => void
+  removeAllListeners: (...args: Parameters<typeof ipcRenderer.removeAllListeners>) => void
   enableMouse: () => void
   disableMouse: () => void
   onWindowVisibilityChange: (callback: (isVisible: boolean) => void) => void
   // returns image b64 url
-  takeScreenshot: () => Promise<string>
+  takeScreenshot: () => Promise<ScreenshotResponse>
   requestScreenshotPermission: () => Promise<void>
   isScreenshotPermissionGranted: () => Promise<boolean>
+}
+
+export type ScreenshotResponse = {
+  imageDataUrl: string
+  width: number
+  height: number
 }
 
 contextBridge.exposeInMainWorld('nativeApi', {
@@ -38,9 +45,13 @@ contextBridge.exposeInMainWorld('nativeApi', {
     const [channel, ...omit] = args
     return ipcRenderer.invoke(channel, ...omit)
   },
+  removeAllListeners: (...args: Parameters<typeof ipcRenderer.removeAllListeners>) => {
+    const [channel, ...omit] = args
+    return ipcRenderer.removeAllListeners(channel, ...omit)
+  },
   enableMouse: () => ipcRenderer.invoke('enable-mouse'),
   disableMouse: () => ipcRenderer.invoke('disable-mouse'),
-  takeScreenshot: () => ipcRenderer.invoke('take-screenshot') as Promise<string>,
+  takeScreenshot: () => ipcRenderer.invoke('take-screenshot') as Promise<ScreenshotResponse>,
   onWindowVisibilityChange: (callback: (isVisible: boolean) => void) => {
     ipcRenderer.on('window-visibility-changed', (_, isVisible) => callback(isVisible));
   },
