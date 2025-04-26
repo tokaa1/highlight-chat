@@ -41,3 +41,24 @@ body {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
+
+.fade-in-100 {
+  animation: fadeIn 100ms ease-in-out;
+}
+.fade-in-200 {
+  animation: fadeIn 200ms ease-in-out;
+}
+.fade-in-300 {
+  animation: fadeIn 300ms ease-in-out;
+}
+.fade-in-400 {
+  animation: fadeIn 400ms ease-in-out;
+}
+.fade-in-500 {
+  animation: fadeIn 500ms ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

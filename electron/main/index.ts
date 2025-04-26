@@ -66,13 +66,18 @@ async function takeScreenshot() {
 
     execSync(`screencapture -i "${tempFilePath}"`);
 
-    // Get image dimensions using sharp
-    const metadata = await sharp(tempFilePath).metadata();
-    const { width, height } = metadata;
+    // Compress and process the image with sharp
+    const processedImageBuffer = await sharp(tempFilePath)
+      .metadata()
+      .then(({ width, height }) => {
+        return sharp(tempFilePath)
+          .png({ quality: 80, compressionLevel: 9 }) // Higher compression level
+          .toBuffer()
+          .then(buffer => ({ buffer, width, height }));
+      });
 
-    // Read the file and convert to base64
-    const imageBuffer = fs.readFileSync(tempFilePath);
-    const base64Image = imageBuffer.toString('base64');
+    // Convert compressed buffer to base64
+    const base64Image = processedImageBuffer.buffer.toString('base64');
     const dataUrl = `data:image/png;base64,${base64Image}`;
 
     // Clean up the temporary file
@@ -80,8 +85,8 @@ async function takeScreenshot() {
 
     return {
       imageDataUrl: dataUrl,
-      width,
-      height
+      width: processedImageBuffer.width,
+      height: processedImageBuffer.height
     };
   } catch (error) {
     console.error('Screenshot error:', error);

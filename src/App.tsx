@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, createContext, useContext } from 'react';
 import { ScreenshotResponse } from 'electron/preload';
-import ScreenshotOverlay from './components/ScreenshotUI';
+import ScreenshotOverlay from './components/ScreenshotOverlay';
 import { VisibilityContext } from './contexts/visibility';
 import Header from './components/Header';
 import { nativeApi } from './util/native';
@@ -23,7 +23,8 @@ export default function App() {
         className='h-full w-full m-0 p-0'
         style={{
           opacity: isVisible ? 1 : 0,
-          transition: isVisible ? 'opacity 200ms ease-in' : 'none'
+          transition: isVisible ? 'opacity 200ms ease-in, transform 200ms ease-out' : 'none',
+          transform: `translateY(${isVisible ? '0' : '100px'})`,
         }}
       >
         <Header />
