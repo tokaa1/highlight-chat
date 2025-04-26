@@ -1,5 +1,12 @@
 import { ipcRenderer, contextBridge } from 'electron'
 
+export interface ScreenshotRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export type PreloadAPI = {
   on: (...args: Parameters<typeof ipcRenderer.on>) => void
   off: (...args: Parameters<typeof ipcRenderer.off>) => void
@@ -8,6 +15,10 @@ export type PreloadAPI = {
   enableMouse: () => void
   disableMouse: () => void
   onWindowVisibilityChange: (callback: (isVisible: boolean) => void) => void
+  // returns image b64 url
+  takeScreenshot: () => Promise<string>
+  requestScreenshotPermission: () => Promise<void>
+  isScreenshotPermissionGranted: () => Promise<boolean>
 }
 
 contextBridge.exposeInMainWorld('nativeApi', {
@@ -29,7 +40,10 @@ contextBridge.exposeInMainWorld('nativeApi', {
   },
   enableMouse: () => ipcRenderer.invoke('enable-mouse'),
   disableMouse: () => ipcRenderer.invoke('disable-mouse'),
+  takeScreenshot: () => ipcRenderer.invoke('take-screenshot') as Promise<string>,
   onWindowVisibilityChange: (callback: (isVisible: boolean) => void) => {
     ipcRenderer.on('window-visibility-changed', (_, isVisible) => callback(isVisible));
   },
+  requestScreenshotPermission: () => ipcRenderer.invoke('request-screenshot-permission') as Promise<void>,
+  isScreenshotPermissionGranted: () => ipcRenderer.invoke('is-screenshot-permission-granted') as Promise<boolean>
 } as PreloadAPI)

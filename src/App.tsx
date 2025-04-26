@@ -8,7 +8,7 @@ import { nativeApi } from './util/native';
 
 export default function App() {
   const [isVisible, setIsVisible] = useState(false);
-  const [isScreenshotMode, setIsScreenshotMode] = useState(false);
+  const [currentScreenshot, setCurrentScreenshot] = useState<string | null>(null);
 
   useEffect(() => {
     const handleVisibilityChange = (visible: boolean) => {
@@ -17,14 +17,13 @@ export default function App() {
 
     nativeApi.onWindowVisibilityChange(handleVisibilityChange);
   }, []);
+
   useEffect(() => {
-    nativeApi.on('screenshot-keybind', () => {
-      setIsScreenshotMode(true);
-      console.log('screenshot-keybind');
+    nativeApi.on('screenshot', (_ev, screenshot: string) => {
+      setCurrentScreenshot(screenshot);
     });
     nativeApi.on('reset-screenshot', () => {
-      setIsScreenshotMode(false);
-      console.log('reset-screenshot');
+
     });
   }, []);
 
@@ -37,8 +36,8 @@ export default function App() {
           transition: isVisible ? 'opacity 200ms ease-in' : 'none'
         }}
       >
-        {isScreenshotMode && <ScreenshotOverlay />}
         <Header />
+        {currentScreenshot && <img src={currentScreenshot} alt="Screenshot" />}
       </div>
     </VisibilityContext.Provider>
   );

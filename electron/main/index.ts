@@ -3,7 +3,6 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
-
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -44,7 +43,7 @@ function toggleWindowVisibility() {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
     const yPosition = primaryDisplay.workArea.y;
-    
+
     win.setSize(width, height);
     win.setPosition(0, yPosition);
     win.blur();
@@ -52,43 +51,35 @@ function toggleWindowVisibility() {
   }
 }
 
-async function takeScreenshot(rect: { x: number; y: number; width: number; height: number }) {
+async function takeScreenshot() {
+  if (process.platform !== 'darwin') {
+    throw new Error('This screenshot method is only supported on macOS');
+  }
+
   try {
-    // Request screen capture permissions
-    const sources = await desktopCapturer.getSources({ 
-      types: ['screen'], 
-      thumbnailSize: { width: 0, height: 0 },
-      fetchWindowIcons: false 
-    });
+    const { execSync } = require('child_process');
+    const fs = require('fs');
+    const path = require('path');
 
-    if (!sources || sources.length === 0) {
-      throw new Error('No screen sources available');
-    }
+    // Create a temporary file path
+    const tempDir = app.getPath('temp');
+    const tempFilePath = path.join(tempDir, `screenshot-${Date.now()}.png`);
 
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const source = sources.find(s => s.display_id === primaryDisplay.id.toString());
-    
-    if (!source) {
-      throw new Error('Primary display not found');
-    }
+    // Use screencapture to take the screenshot with the specified region
+    execSync(`screencapture -i "${tempFilePath}"`);
 
-    const image = source.thumbnail.crop({
-      x: rect.x,
-      y: rect.y,
-      width: rect.width,
-      height: rect.height
-    });
+    // Read the file and convert to base64
+    const imageBuffer = fs.readFileSync(tempFilePath);
+    const base64Image = imageBuffer.toString('base64');
+    const dataUrl = `data:image/png;base64,${base64Image}`;
 
-    const buffer = image.toPNG();
-    const downloadsPath = app.getPath('downloads');
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const filePath = path.join(downloadsPath, `screenshot-${timestamp}.png`);
-    
-    require('fs').writeFileSync(filePath, buffer);
-    return filePath;
+    // Clean up the temporary file
+    fs.unlinkSync(tempFilePath);
+
+    return dataUrl;
   } catch (error) {
     console.error('Screenshot error:', error);
-    throw new Error('Failed to capture screenshot. Please ensure screen recording permissions are granted.');
+    throw new Error('Failed to capture screenshot');
   }
 }
 
@@ -96,7 +87,7 @@ async function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
   const yPosition = primaryDisplay.workArea.y;
-  
+
   win = new BrowserWindow({
     title: 'Main window',
     icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
@@ -149,33 +140,31 @@ async function createWindow() {
 
 app.whenReady().then(() => {
   createWindow();
-  
+
   // register global shortcut cmd/ctrl + B
   globalShortcut.register(process.platform === 'darwin' ? 'CommandOrControl+B' : 'Ctrl+B', toggleWindowVisibility);
   globalShortcut.register(process.platform === 'darwin' ? 'CommandOrControl+H' : 'Ctrl+H', () => {
-    if (win) {
-      win.webContents.send('screenshot-keybind');
-    }
+    if (!win)
+      return;
+    if (!win.isVisible())
+      win.show();
+    takeScreenshot().then(screenshot => {
+      win!.webContents.send('screenshot', screenshot);
+    });
   });
   globalShortcut.register(process.platform === 'darwin' ? 'CommandOrControl+D' : 'Ctrl+D', () => {
-    if (win) {
-      win.webContents.send('reset-screenshot');
-    }
+    if (!win)
+      return;
+    if (!win.isVisible())
+      win.show();
+    win.webContents.send('reset-screenshot');
   });
 
   ipcMain.handle('enable-mouse', () => {
-    win?.setIgnoreMouseEvents(false, {forward: true});
+    win?.setIgnoreMouseEvents(false, { forward: true });
   })
   ipcMain.handle('disable-mouse', () => {
-    win?.setIgnoreMouseEvents(true, {forward: true});
-  })
-  ipcMain.handle('take-screenshot', async (_, rect) => {
-    try {
-      return await takeScreenshot(rect);
-    } catch (error) {
-      console.error('Screenshot handler error:', error);
-      throw error;
-    }
+    win?.setIgnoreMouseEvents(true, { forward: true });
   })
 })
 
