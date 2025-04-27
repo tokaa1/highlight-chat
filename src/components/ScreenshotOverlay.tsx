@@ -109,11 +109,13 @@ async function doAiMagic(currentScreenshot: ScreenshotState, setCurrentScreensho
     {
       role: "system",
       content: `Today's date is ${new Date().toLocaleDateString()}. `
-        + "You are a helpful assistant. "
-        + "When communicating with the user, you may highlight things on the image to help them understand the image better. "
-        + "To use the highlight tool, use the following format: `<highlight x=100 y=100 width=200 height=200>Your label here</highlight>`"
-        + " where you substitute the x, y, width, height, and text ('Your label here') with the actual values and text you want to display. "
-        + " You can use this tool multiple times in a single response if needed, but do not overuse it (so we can avoid image clutter). The text label show be short and consise."
+        + "You are a helpful assistant."
+        + " You may be provided with an image. When communicating with the user, you may highlight things on the image to help them understand the image better."
+        + ` The image size is ${currentScreenshot.width}x${currentScreenshot.height} (width x height).`
+        + " To use the highlight tool, use the following format: `<highlight x=100 y=100 width=200 height=200>Your label here</highlight>`"
+        + " where you substitute the x, y, width, height, and text ('Your label here') with the actual values and text you want to display."
+        + " Make your highlight areas as accurate and consistent as possible."
+        + " You can use this tool multiple times in a single response if needed, but do not overuse it (so we can avoid image clutter). The text label should be short and consise."
     },
     {
       role: "user",
@@ -330,6 +332,6 @@ export default function ScreenshotOverlay() {
     >
       {currentScreenshot.response}
     </Markdown>
-    <input type="text" className="border-0 w-full h-[30px] bg-black/50 text-white rounded-md p-2 hover:bg-white"/>
+    <input type="text" className="font-sans border-0 w-full h-[20px] bg-black/50 text-white rounded-md p-2 hover:bg-white/10 transition-all duration-200" placeholder="Enter your prompt here..."/>
   </div>
 }
