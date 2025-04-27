@@ -289,7 +289,7 @@ export default function ScreenshotOverlay() {
 
   return (
     <HoveredMarkerProvider>
-      <div className='absolute m-0 p-4 w-[500px] min-h-[40px] max-h-[100%] overflow-y-auto overflow-x-hidden bottom-[166px] box-border left-1/2 transform -translate-x-1/2 rounded-3xl flex flex-col gap-2 justify-center items-center bg-black/70 backdrop-blur-sm'>
+      {currentPrompt && <div className='absolute m-0 p-4 w-[500px] min-h-[40px] max-h-[100%] overflow-y-auto overflow-x-hidden bottom-[166px] box-border left-1/2 transform -translate-x-1/2 rounded-3xl flex flex-col gap-2 justify-center items-center bg-black/70 backdrop-blur-sm'>
         {currentPrompt && currentPrompt.imageDataUrl && <ImageWithMarkers currentPrompt={currentPrompt} />}
         {currentPrompt && <ChatRenderer currentPrompt={currentPrompt} />}
         {isGenerating && <GeneratingDotsAnimation />}
@@ -297,7 +297,7 @@ export default function ScreenshotOverlay() {
           <SimpleButton className="self-start" onClick={() => setIsFollowingUp(true)}>Ask a follow up</SimpleButton>
         }
         {isFollowingUp && <InputContainer onEnter={onPromptEnter} />}
-      </div>
+      </div>}
     </HoveredMarkerProvider>
   );
 }
