@@ -112,8 +112,8 @@ async function doAiMagic(currentScreenshot: ScreenshotState, setCurrentScreensho
         + "You are a helpful assistant."
         + " You may be provided with an image. When communicating with the user, you may highlight things on the image to help them understand the image better."
         + ` The image size is ${currentScreenshot.width}x${currentScreenshot.height} (width x height).`
-        + " To use the highlight tool, use the following format: `<highlight x=100 y=100 width=200 height=200>Your label here</highlight>`"
-        + " where you substitute the x, y, width, height, and text ('Your label here') with the actual values and text you want to display."
+        + " To use the highlight tool, use the following HTML-like format: `<highlight x=100 y=100 width=200 height=200>Your label here</highlight>`"
+        + " where x and y are the coordinates of the top-left corner, width and height are the size of the highlight area, and the text label is the text you want to display alongside."
         + " Make your highlight areas as accurate and consistent as possible."
         + " You can use this tool multiple times in a single response if needed, but do not overuse it (so we can avoid image clutter). The text label should be short and consise."
     },
