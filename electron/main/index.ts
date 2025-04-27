@@ -38,20 +38,22 @@ function toggleWindowVisibility() {
   if (!win) return;
 
   if (win.isVisible()) {
-    win.webContents.send('window-visibility-changed', false);
-    win.hide();
+    hideWindow();
   } else {
-    win.webContents.send('window-visibility-changed', true);
-    // Update window size and position before showing
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { width, height } = primaryDisplay.workAreaSize;
-    const yPosition = primaryDisplay.workArea.y;
-
-    win.setSize(width, height);
-    win.setPosition(0, yPosition);
-    win.blur();
-    win.show();
+    showWindow();
   }
+}
+
+function showWindow() {
+  if (!win) return;
+  win.show();
+  win.webContents.send('window-visibility-changed', true);
+}
+
+function hideWindow() {
+  if (!win) return;
+  win.hide();
+  win.webContents.send('window-visibility-changed', false);
 }
 
 async function takeScreenshot() {
@@ -160,7 +162,7 @@ app.whenReady().then(() => {
     if (!win)
       return;
     if (!win.isVisible())
-      win.show();
+      showWindow();
     takeScreenshot().then(screenshot => {
       win!.webContents.send('screenshot', screenshot);
     });
@@ -169,7 +171,7 @@ app.whenReady().then(() => {
     if (!win)
       return;
     if (!win.isVisible())
-      win.show();
+      showWindow();
     win.webContents.send('reset-screenshot');
   });
 

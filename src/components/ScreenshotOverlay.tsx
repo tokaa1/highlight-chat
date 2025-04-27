@@ -79,15 +79,15 @@ const openai = new OpenAI({
 async function doAiMagic(currentScreenshot: ScreenshotState, setCurrentScreenshot: (screenshot: ScreenshotState) => void) {
   if (!currentScreenshot)
     return;
-
   console.log('one call')
 
   const input: ResponseCreateParamsNonStreaming['input'] = [
     {
       role: "system",
-      content: "You are a helpful assistant that can answer questions about the image and analyze accurately while providing short yet consise responses. "
+      content: `Today's date is ${new Date().toLocaleDateString()}. `
+        + "You are a helpful assistant. "
         + "When communicating with the user, you may highlight things on the image to help them understand the image better. "
-        + "\nTo use the highlight tool, use the following format: `<highlight x=100 y=100 width=200 height=200>Your label here</highlight>`"
+        + "To use the highlight tool, use the following format: `<highlight x=100 y=100 width=200 height=200>Your label here</highlight>`"
         + " where you substitute the x, y, width, height, and text ('Your label here') with the actual values and text you want to display. "
         + " You can use this tool multiple times in a single response if needed, but do not overuse it (so we can avoid image clutter). The text label show be short and consise."
     },
@@ -144,6 +144,7 @@ async function doAiMagic(currentScreenshot: ScreenshotState, setCurrentScreensho
       });
     }
 
+    // strips incomplete <highlight> tags
     const displayResponse = fullResponse.replace(/<highlight.*?($|(?=<highlight))/g, '');
 
     setCurrentScreenshot({
@@ -152,6 +153,11 @@ async function doAiMagic(currentScreenshot: ScreenshotState, setCurrentScreensho
       response: displayResponse
     });
   }
+  setCurrentScreenshot({
+    ...currentScreenshot,
+    markers: markers,
+    response: fullResponse
+  });
 };
 
 function createMarkerKey(x: number, y: number, width: number, height: number, text: string): string {
@@ -160,10 +166,12 @@ function createMarkerKey(x: number, y: number, width: number, height: number, te
 
 export default function ScreenshotOverlay() {
   const [currentScreenshot, setCurrentScreenshot] = useState<ScreenshotState | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   useEffect(() => {
     nativeApi.on('screenshot', (_ev, screenshot: ScreenshotResponse) => {
       setCurrentScreenshot(screenshot as ScreenshotState);
-      doAiMagic(screenshot as ScreenshotState, setCurrentScreenshot);
+      setIsGenerating(true);
+      doAiMagic(screenshot as ScreenshotState, setCurrentScreenshot).finally(() => setIsGenerating(false));
     });
     nativeApi.on('reset-screenshot', () => {
       setCurrentScreenshot(null);
@@ -175,13 +183,14 @@ export default function ScreenshotOverlay() {
     }
   }, []);
   const [hoveredMarkers, setHoveredMarkers] = useState<Set<Marker>>(new Set());// keys of markers that are hovered
-
   if (!currentScreenshot)
     return null;
 
+  console.log(currentScreenshot.response);
+
   return <div className='absolute m-0 p-4 w-[500px] min-h-[130px] bottom-[166px] box-border left-1/2 transform -translate-x-1/2 rounded-3xl flex flex-col gap-2 justify-center items-center bg-black/70 backdrop-blur-sm'>
     <div className="max-w-full max-h-[200px] relative">
-      <img src={currentScreenshot.imageDataUrl} alt="Screenshot" className="max-w-full max-h-[200px] h-auto object-contain rounded-3xl border-white/10 border-[2px] border-solid" />
+      <img src={currentScreenshot.imageDataUrl} alt="Screenshot" className="max-w-full max-h-[200px] h-auto object-contain rounded-3xl border-white/10 border-[2px] border-solid fade-in-200" />
       {currentScreenshot.markers?.map((marker, index) => {
         const isHovered = hoveredMarkers.has(marker);
         const onMouseOver = () => {
@@ -202,7 +211,7 @@ export default function ScreenshotOverlay() {
             return s;
           });
         }
-        return <div key={index} className="absolute hover:opacity-[1] transition-all duration-200" style={{
+        return <div key={index} className={`absolute hover:opacity-[1] transition-all duration-200 ${isGenerating && index == currentScreenshot.markers!.length - 1 ? 'animate-pulse' : ''}`} style={{
           left: `${(marker.x / currentScreenshot.width) * 100}%`,
           top: `${(marker.y / currentScreenshot.height) * 100}%`,
           width: `${(marker.width / currentScreenshot.width) * 100}%`,
@@ -214,11 +223,12 @@ export default function ScreenshotOverlay() {
           borderRadius: '0px',
           fontSize: '12px',
           zIndex: isHovered ? 1001 : 1000,
-          transform: `scale(${isHovered ? 1.2 : 1})`,
-        }} onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
-          <span className={`text-white text-[10px] font-bold absolute left-1/2 transform -translate-x-1/2 whitespace-nowrap text-center ${marker.style.textPosition === 'top' ? 'top-[-22px]' : 'bottom-[-22px]'}`}>
+          transform: `scale(${isHovered ? 1.1 : 1})`,
+          opacity: isHovered ? 1 : 0.8,
+        }} onMouseEnter={onMouseOver} onMouseLeave={onMouseOut}>
+          <div className={`p-1 ${isHovered ? 'bg-black/70' : ''} rounded-md text-white text-[10px] font-bold absolute left-1/2 transform -translate-x-1/2 whitespace-nowrap text-center transition-all duration-200 ${isHovered ? 'scale-[1.15]' : 'scale-[1]'} ${marker.style.textPosition === 'top' ? 'top-[-22px]' : 'bottom-[-22px]'}`}>
             {marker.text}
-          </span>
+          </div>
         </div>
       })}
     </div>
@@ -274,8 +284,9 @@ export default function ScreenshotOverlay() {
             if (!marker) {
               return <></>;
             }
+            const isHovered = hoveredMarkers.has(marker);
             const onMouseOver = () => {
-              if (hoveredMarkers.has(marker))
+              if (isHovered)
                 return;
               setHoveredMarkers(prev => {
                 const s = new Set(prev);
@@ -284,7 +295,7 @@ export default function ScreenshotOverlay() {
               });
             }
             const onMouseOut = () => {
-              if (!hoveredMarkers.has(marker))
+              if (!isHovered)
                 return;
               setHoveredMarkers(prev => {
                 const s = new Set(prev);
@@ -292,10 +303,10 @@ export default function ScreenshotOverlay() {
                 return s;
               });
             }
-            return <div className="flex flex-col my-[2px] gap-2 pl-2 border-l-[3px] self-start" style={{borderLeftColor: marker.style.color.borderColor, borderLeftStyle: 'solid'}} onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
-              <span className="text-white text-xs font-light">
+            return <div className="flex flex-col my-[2px] gap-2 pl-2 border-l-[3px] self-start" style={{borderLeftColor: marker.style.color.borderColor, borderLeftStyle: 'solid'}} onMouseEnter={onMouseOver} onMouseLeave={onMouseOut}>
+              <span className={`text-white text-xs font-light`}>
                 {'Highlighted: '}
-                <span className="text-white text-xs font-bold" style={{color: marker.style.color.borderColor}}>{marker.text}</span>
+                <span className={`text-white text-xs font-bold`} style={{color: marker.style.color.borderColor}}>{marker.text}</span>
               </span>
             </div>
           }
