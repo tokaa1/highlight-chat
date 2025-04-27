@@ -212,7 +212,7 @@ export default function ScreenshotOverlay() {
 
   console.log(currentScreenshot.response);
 
-  return <div className='absolute m-0 p-4 w-[500px] min-h-[130px] bottom-[166px] box-border left-1/2 transform -translate-x-1/2 rounded-3xl flex flex-col gap-2 justify-center items-center bg-black/70 backdrop-blur-sm'>
+  return <div className='absolute m-0 p-4 w-[500px] min-h-[130px] bottom-[166px] box-border left-1/2 transform -translate-x-1/2 rounded-3xl flex flex-col gap-2 justify-center items-center bg-black/50 backdrop-blur-sm'>
     <div className="max-w-full max-h-[200px] relative">
       <img src={currentScreenshot.imageDataUrl} alt="Screenshot" className="max-w-full max-h-[200px] h-auto object-contain rounded-3xl border-white/10 border-[2px] border-solid fade-in-200" />
       {currentScreenshot.markers?.map((marker, index) => {
@@ -227,7 +227,7 @@ export default function ScreenshotOverlay() {
             return;
           setHoveredMarker(null);
         }
-        return <div key={index} className={`absolute hover:opacity-[1] transition-all duration-200 ${isGenerating && index == currentScreenshot.markers!.length - 1 ? 'animate-pulse' : ''}`} style={{
+        return <div key={index} className={`absolute hover:opacity-[1] transition-all duration-200 marker-fade-in`} style={{
           left: `${(marker.x / currentScreenshot.width) * 100}%`,
           top: `${(marker.y / currentScreenshot.height) * 100}%`,
           width: `${(marker.width / currentScreenshot.width) * 100}%`,

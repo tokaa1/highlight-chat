@@ -57,6 +57,14 @@ body {
 .fade-in-500 {
   animation: fadeIn 500ms ease-in-out;
 }
+.marker-fade-in {
+  animation: fadeIn 250ms ease-in-out;
+}
+
+@keyframes markerFadeIn {
+  from { opacity: 0; }
+  to { opacity: 0.8; }
+}
 
 @keyframes fadeIn {
   from { opacity: 0; }
