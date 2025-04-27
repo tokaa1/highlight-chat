@@ -1,6 +1,5 @@
-import { useVisibility } from "@/contexts/visibility";
 import { nativeApi } from "@/util/native";
-import { ScreenshotRect, ScreenshotResponse } from "electron/preload";
+import { ScreenshotResponse } from "electron/preload";
 import OpenAI from "openai";
 import { ResponseCreateParamsNonStreaming, ResponseInputMessageContentList } from "openai/resources/responses/responses";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -8,6 +7,9 @@ import Markdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { xonokai } from "react-syntax-highlighter/dist/esm/styles/prism";
 import rehypeRaw from "rehype-raw";
+import SimpleButton from "../components/SimpleButton";
+import GeneratingDotsAnimation from "@/components/GeneratingDotsAnimation";
+import InputContainer from "@/components/InputContainer";
 
 interface MarkerStyle {
   color: MarkerColor;
@@ -133,7 +135,6 @@ const openai = new OpenAI({
 async function doAiMagic(currentPrompt: PromptState, setCurrentPrompt: (screenshot: PromptState) => void) {
   if (!currentPrompt)
     return;
-  console.log('one call')
 
   const context: ResponseCreateParamsNonStreaming['input'] = []
   for (const message of currentPrompt.context || []) {
@@ -235,7 +236,6 @@ async function doAiMagic(currentPrompt: PromptState, setCurrentPrompt: (screensh
     });
   }
   newContext[newContext.length - 1].content = fullResponse;
-  console.log('final', fullResponse);
   setCurrentPrompt({
     ...currentPrompt,
     markers: markers,
@@ -250,9 +250,19 @@ function createMarkerKey(x: number, y: number, width: number, height: number, te
 export default function ScreenshotOverlay() {
   const [currentPrompt, setCurrentPrompt] = useState<PromptState | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isFollowingUp, setIsFollowingUp] = useState(false);
   useEffect(() => {
     nativeApi.on('screenshot', (_ev, screenshot: ScreenshotResponse) => {
-      setCurrentPrompt(screenshot as PromptState);
+      const newCurrentPrompt = screenshot as PromptState;
+      newCurrentPrompt.context = [{
+        role: 'user',
+        content: '',
+        image_url: newCurrentPrompt.imageDataUrl
+      }];
+      setCurrentPrompt(newCurrentPrompt);
+      setIsGenerating(true);
+      doAiMagic(newCurrentPrompt, setCurrentPrompt).finally(() => setIsGenerating(false));
+      setIsFollowingUp(false);
     });
     nativeApi.on('reset-screenshot', () => {
       setCurrentPrompt(null);
@@ -264,8 +274,7 @@ export default function ScreenshotOverlay() {
     }
   }, []);
 
-  const onEnter = (prompt: string) => {
-    console.log('onEnter', prompt);
+  const onPromptEnter = (prompt: string) => {
     setIsGenerating(true);
     const newCurrentPrompt = currentPrompt ? { ...currentPrompt } : { imageDataUrl: '', width: 0, height: 0 };
     if (!newCurrentPrompt.context || newCurrentPrompt.context.length == 0) {
@@ -274,59 +283,23 @@ export default function ScreenshotOverlay() {
       newCurrentPrompt.context.push({ role: 'user', content: prompt });
     }
     setCurrentPrompt(newCurrentPrompt);
+    setIsFollowingUp(false);
     doAiMagic(newCurrentPrompt, setCurrentPrompt).finally(() => setIsGenerating(false));
   }
 
   return (
     <HoveredMarkerProvider>
-      <div className='absolute m-0 p-4 w-[500px] min-h-[40px] bottom-[166px] box-border left-1/2 transform -translate-x-1/2 rounded-3xl flex flex-col gap-2 justify-center items-center bg-black/50 backdrop-blur-sm'>
+      <div className='absolute m-0 p-4 w-[500px] min-h-[40px] max-h-[100%] overflow-y-auto overflow-x-hidden bottom-[166px] box-border left-1/2 transform -translate-x-1/2 rounded-3xl flex flex-col gap-2 justify-center items-center bg-black/70 backdrop-blur-sm'>
         {currentPrompt && currentPrompt.imageDataUrl && <ImageWithMarkers currentPrompt={currentPrompt} />}
         {currentPrompt && <ChatRenderer currentPrompt={currentPrompt} />}
-        {!isGenerating && <InputContainer onEnter={onEnter} />}
         {isGenerating && <GeneratingDotsAnimation />}
+        {!isGenerating && !isFollowingUp && currentPrompt?.context && currentPrompt.context.length > 0 && 
+          <SimpleButton className="self-start" onClick={() => setIsFollowingUp(true)}>Ask a follow up</SimpleButton>
+        }
+        {isFollowingUp && <InputContainer onEnter={onPromptEnter} />}
       </div>
     </HoveredMarkerProvider>
   );
-}
-
-function InputContainer({ onEnter }: { onEnter: (prompt: string) => void }) {
-  const [inputValue, setInputValue] = useState('');
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      if (e.shiftKey) {
-        // Allow shift+enter to create a new line
-        setInputValue(prev => prev + '\n');
-      } else {
-        // Just enter calls onEnter
-        onEnter(inputValue);
-        setInputValue('');
-        nativeApi.disableMouse();
-      }
-    }
-  };
-
-  const handleMouseEnter = () => {
-    nativeApi.enableMouse();
-  };
-  const handleMouseLeave = () => {
-    nativeApi.disableMouse();
-  };
-
-  return <textarea
-    value={inputValue}
-    onChange={(e) => {
-      setInputValue(e.target.value);
-      // Adjust height based on content
-      e.target.style.height = 'auto';
-      e.target.style.height = `${e.target.scrollHeight}px`;
-    }}
-    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => handleKeyDown(e as unknown as React.KeyboardEvent<HTMLInputElement>)}
-    onMouseEnter={handleMouseEnter}
-    onMouseLeave={handleMouseLeave}
-    className="border-[1px] border-white/20 box-border border-solid font-sans border-0 w-full h-[36px] min-h-[36px] bg-black/50 text-m text-white rounded-xl p-2 hover:bg-white/10 transition-all duration-200 resize-none overflow-hidden cursor-text"
-    placeholder="Ask anything"
-  />
 }
 
 function ImageWithMarkers({ currentPrompt }: { currentPrompt: PromptState }) {
@@ -427,8 +400,6 @@ function ChatRenderer({ currentPrompt }: { currentPrompt: PromptState }) {
                 if (x || y || width || height) {
                   const marker = currentPrompt.markers?.find(m => m.x == x && m.y == y && m.width == width && m.height == height);
                   if (!marker) {
-                    console.log(currentPrompt.markers);
-                    console.log('no marker found', x, y, width, height);
                     return <></>;
                   }
                   const isHovered = hoveredMarker == marker;
@@ -462,24 +433,5 @@ function ChatRenderer({ currentPrompt }: { currentPrompt: PromptState }) {
         </div>
       ))}
     </>
-  );
-}
-
-function GeneratingDotsAnimation() {
-  const dotsArray = ['.', '..', '...'];
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex(prev => (prev + 1) % dotsArray.length);
-    }, 250); // change every 500ms
-
-    return () => clearInterval(interval); // cleanup
-  }, []);
-
-  return (
-    <div className="text-left w-full text-white text-lg font-bold font-sans">
-      {dotsArray[index]}
-    </div>
   );
 }

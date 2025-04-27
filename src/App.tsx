@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, createContext, useContext } from 'react';
 import { ScreenshotResponse } from 'electron/preload';
-import ScreenshotOverlay from './components/ScreenshotOverlay';
+import ScreenshotOverlay from './pages/ScreenshotOverlay';
 import { VisibilityContext } from './contexts/visibility';
-import Header from './components/Header';
+import Header from './pages/Header';
 import { nativeApi } from './util/native';
 
 export default function App() {
