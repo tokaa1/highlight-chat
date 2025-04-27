@@ -34,9 +34,33 @@ const markerColors: MarkerColor[] = [
     borderColor: `rgba(75, 75, 255, 1)`,
   },
   {
+    bgColor: `rgba(255, 174, 0, 0.7)`,
+    borderColor: `rgb(255, 174, 0)`,
+  },
+  {
     bgColor: `rgba(100, 220, 100, 0.7)`,
     borderColor: `rgba(100, 220, 100, 1)`,
   },
+  {
+    bgColor: `rgba(0, 184, 212, 0.7)`,
+    borderColor: `rgb(0, 184, 212)`,
+  },
+  {
+    bgColor: `rgba(255, 0, 238, 0.7)`,
+    borderColor: `rgb(255, 0, 238)`,
+  },
+  {
+    bgColor: `rgba(255, 87, 34, 0.7)`,
+    borderColor: `rgb(255, 87, 34)`,
+  },
+  {
+    bgColor: `rgba(0, 150, 136, 0.7)`,
+    borderColor: `rgb(0, 150, 136)`,
+  },
+  {
+    bgColor: `rgba(233, 30, 99, 0.7)`,
+    borderColor: `rgb(233, 30, 99)`,
+  }
 ];
 
 // Global state for cycling
@@ -182,7 +206,7 @@ export default function ScreenshotOverlay() {
       nativeApi.removeAllListeners('reset-screenshot');
     }
   }, []);
-  const [hoveredMarkers, setHoveredMarkers] = useState<Set<Marker>>(new Set());// keys of markers that are hovered
+  const [hoveredMarker, setHoveredMarker] = useState<Marker | null>(null);
   if (!currentScreenshot)
     return null;
 
@@ -192,24 +216,16 @@ export default function ScreenshotOverlay() {
     <div className="max-w-full max-h-[200px] relative">
       <img src={currentScreenshot.imageDataUrl} alt="Screenshot" className="max-w-full max-h-[200px] h-auto object-contain rounded-3xl border-white/10 border-[2px] border-solid fade-in-200" />
       {currentScreenshot.markers?.map((marker, index) => {
-        const isHovered = hoveredMarkers.has(marker);
+        const isHovered = hoveredMarker == marker;
         const onMouseOver = () => {
           if (isHovered)
             return;
-          setHoveredMarkers(prev => {
-            const s = new Set(prev);
-            s.add(marker);
-            return s;
-          });
+          setHoveredMarker(marker);
         }
-        const onMouseOut = () => {
+        const onMouseLeave = () => {
           if (!isHovered)
             return;
-          setHoveredMarkers(prev => {
-            const s = new Set(prev);
-            s.delete(marker);
-            return s;
-          });
+          setHoveredMarker(null);
         }
         return <div key={index} className={`absolute hover:opacity-[1] transition-all duration-200 ${isGenerating && index == currentScreenshot.markers!.length - 1 ? 'animate-pulse' : ''}`} style={{
           left: `${(marker.x / currentScreenshot.width) * 100}%`,
@@ -225,7 +241,7 @@ export default function ScreenshotOverlay() {
           zIndex: isHovered ? 1001 : 1000,
           transform: `scale(${isHovered ? 1.1 : 1})`,
           opacity: isHovered ? 1 : 0.8,
-        }} onMouseEnter={onMouseOver} onMouseLeave={onMouseOut}>
+        }} onMouseOver={onMouseOver} onMouseLeave={onMouseLeave}>
           <div className={`p-1 ${isHovered ? 'bg-black/70' : ''} rounded-md text-white text-[10px] font-bold absolute left-1/2 transform -translate-x-1/2 whitespace-nowrap text-center transition-all duration-200 ${isHovered ? 'scale-[1.15]' : 'scale-[1]'} ${marker.style.textPosition === 'top' ? 'top-[-22px]' : 'bottom-[-22px]'}`}>
             {marker.text}
           </div>
@@ -279,31 +295,25 @@ export default function ScreenshotOverlay() {
         //@ts-ignore
         highlight: ({ children, ...props }) => {
           const { x, y, width, height } = props as any;
-          if (x && y && width && height) {
+          if (x || y || width || height) {
             const marker = currentScreenshot.markers?.find(m => m.x == x && m.y == y && m.width == width && m.height == height);
             if (!marker) {
+              console.log(currentScreenshot.markers);
+              console.log('no marker found', x, y, width, height);
               return <></>;
             }
-            const isHovered = hoveredMarkers.has(marker);
+            const isHovered = hoveredMarker == marker;
             const onMouseOver = () => {
               if (isHovered)
                 return;
-              setHoveredMarkers(prev => {
-                const s = new Set(prev);
-                s.add(marker);
-                return s;
-              });
+              setHoveredMarker(marker);
             }
-            const onMouseOut = () => {
+            const onMouseLeave = () => {
               if (!isHovered)
                 return;
-              setHoveredMarkers(prev => {
-                const s = new Set(prev);
-                s.delete(marker);
-                return s;
-              });
+              setHoveredMarker(null);
             }
-            return <div className="flex flex-col my-[2px] gap-2 pl-2 border-l-[3px] self-start" style={{borderLeftColor: marker.style.color.borderColor, borderLeftStyle: 'solid'}} onMouseEnter={onMouseOver} onMouseLeave={onMouseOut}>
+            return <div className="flex flex-col my-[2px] gap-2 pl-2 border-l-[3px] self-start" style={{borderLeftColor: marker.style.color.borderColor, borderLeftStyle: 'solid'}} onMouseOver={onMouseOver} onMouseLeave={onMouseLeave}>
               <span className={`text-white text-xs font-light`}>
                 {'Highlighted: '}
                 <span className={`text-white text-xs font-bold`} style={{color: marker.style.color.borderColor}}>{marker.text}</span>
@@ -320,6 +330,6 @@ export default function ScreenshotOverlay() {
     >
       {currentScreenshot.response}
     </Markdown>
-    <input type="text" className="w-full h-[30px] bg-black/50 text-white rounded-md p-2 hover:bg-white"/>
+    <input type="text" className="border-0 w-full h-[30px] bg-black/50 text-white rounded-md p-2 hover:bg-white"/>
   </div>
 }

@@ -161,11 +161,12 @@ app.whenReady().then(() => {
   globalShortcut.register(process.platform === 'darwin' ? 'CommandOrControl+H' : 'Ctrl+H', () => {
     if (!win)
       return;
-    if (!win.isVisible())
-      showWindow();
+    if (win.isVisible())
+      hideWindow();
     takeScreenshot().then(screenshot => {
       win!.webContents.send('screenshot', screenshot);
     });
+    showWindow();
   });
   globalShortcut.register(process.platform === 'darwin' ? 'CommandOrControl+D' : 'Ctrl+D', () => {
     if (!win)
