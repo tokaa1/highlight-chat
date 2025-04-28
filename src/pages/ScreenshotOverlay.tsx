@@ -170,11 +170,11 @@ async function doAiMagic(currentPrompt: PromptState, setCurrentPrompt: (screensh
   const input: ResponseCreateParamsNonStreaming['input'] = [
     {
       role: "system",
-      content: `Today's date is ${new Date().toLocaleDateString()}. `
-        + "You are a helpful assistant that can help with a wide range of tasks."
+      content: `Today's date is ${new Date().toLocaleDateString()}.`
+        + " You are a helpful assistant that can help with a wide range of tasks."
         + " You might be provided with an image. When communicating with the user, you may highlight things on the image to help them understand the image better."
         + ` The size of the image is ${currentPrompt.width}x${currentPrompt.height} (width x height). You should transform your coordinates to fit the image size.`
-        + " To use the highlight tool, use the following HTML-like format: ```<highlight x=100 y=100 width=200 height=200>Your label here</highlight>```"
+        + " To use the highlight tool, use the following HTML-like format: `<highlight x=100 y=100 width=200 height=200>Your label here</highlight>`"
         + " where x and y are the coordinates of the top-left corner, width and height are the size of the highlight area, and the text label is the text you want to display alongside."
         + " The highlight area should be on top of what you want to highlight. "
         + " Make your highlight areas as small as possible and as accurate as possible."
