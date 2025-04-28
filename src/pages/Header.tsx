@@ -1,24 +1,34 @@
 import { useVisibility } from "@/contexts/visibility";
+import { nativeApi } from "@/util/native";
 import { futuristicGradientStyle } from "@/util/styling";
+import { useState } from "react";
 
 export default function Header() {
-
-  return <div className='font-sans pointer-events-auto px-8 box-border w-[430px] h-[80px] flex flex-col bg-neutral-950/10 backdrop-blur-md rounded-[35px] absolute bottom-[80px] left-1/2 transform -translate-x-1/2 shadow-lg items-center justify-center' style={{
+  return <div className='font-sans pointer-events-auto px-8 box-border w-[500px] h-[80px] flex flex-col bg-neutral-950/10 backdrop-blur-md rounded-[35px] absolute bottom-[80px] left-1/2 transform -translate-x-1/2 shadow-lg items-center justify-center' style={{
     ...futuristicGradientStyle,
   }}>
-    <div className='w-full h-[26px] text-xs items-center justify-center flex gap-4'>
+    <div className='w-full h-[40px] text-[11px] items-center justify-center flex flex-row gap-2'>
+      <HeaderButton text='Screenshot' onClick={() => {}}>
+        <img src="/screenshot.png" alt="Screenshot" className="w-5 h-5 invert" />
+      </HeaderButton>
+    </div>
+    <div className='w-full h-[26px] text-[11px] items-center justify-center flex gap-2'>
       <span className='flex items-center'>
-        <span className='mr-1.5 text-white'>New Screenshot</span>
+        <span className='mr-1.5 text-white'>Screenshot</span>
         <span className='bg-white px-1 rounded mr-1 text-black'>⌘</span>
         <span className='bg-white px-1 rounded mr-1 text-black'>H</span>
       </span>
       <span className='flex items-center'>
-        <span className='mr-1.5 text-white'>Reset Screenshot</span>
+        <span className='mr-1.5 text-white'>Selection</span>
+        <span className='bg-white px-1 rounded mr-1 text-black'>⌘</span>
+        <span className='bg-white px-1 rounded mr-1 text-black'>⇧</span>
+        <span className='bg-white px-1 rounded mr-1 text-black'>H</span>
+      </span>
+      <span className='flex items-center'>
+        <span className='mr-1.5 text-white'>Reset</span>
         <span className='bg-white px-1 rounded mr-1 text-black'>⌘</span>
         <span className='bg-white px-1 rounded mr-1 text-black'>D</span>
       </span>
-    </div>
-    <div className='w-full h-[20px] text-[10px] items-center justify-center flex gap-4'>
       <span className='flex items-center'>
         <span className='mr-1.5 text-neutral-100'>Show/Hide</span>
         <span className='bg-white px-1 rounded mr-1 text-black'>⌘</span>
@@ -26,4 +36,37 @@ export default function Header() {
       </span>
     </div>
   </div>
+}
+
+function HeaderButton({ children, text, onClick }: { children: React.ReactNode, text: string, onClick: () => void }) {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const onMouseEnter = () => {
+    nativeApi.enableMouse();
+    setIsHovered(true);
+  }
+  
+  const onMouseLeave = () => {
+    nativeApi.disableMouse();
+    setIsHovered(false);
+  }
+
+  return (
+    <div 
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className='relative cursor-pointer flex items-center px-3 w-auto h-[36px] rounded-xl bg-black/25 hover:bg-white/10 transition-all duration-300 backdrop-blur-md items-center justify-center' 
+      onClick={onClick}
+    >
+      <span className='text-xs text-white mr-[8px]'>{text}</span>
+      {children}
+      
+      {isHovered && (
+        <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 px-3 py-2 bg-neutral-900/90 backdrop-blur-md rounded-lg text-white text-xs shadow-lg border border-white/10 transition-all duration-200">
+          <div className="z-[1002] absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-3 h-3 bg-neutral-900/90 rotate-45 border-r border-b border-white/10"></div>
+          {text}
+        </div>
+      )}
+    </div>
+  );
 }
