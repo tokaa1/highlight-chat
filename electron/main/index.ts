@@ -129,6 +129,7 @@ async function createWindow() {
     //backgroundMaterial: 'acrylic' // on Windows 11
   })
 
+  //win.setContentProtection(true);
   win.setIgnoreMouseEvents(true, {forward: true});
   win.webContents.toggleDevTools();
   win.webContents.on('before-input-event', (event, input) => {

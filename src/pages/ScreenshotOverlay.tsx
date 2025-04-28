@@ -7,6 +7,9 @@ import Markdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { xonokai } from "react-syntax-highlighter/dist/esm/styles/prism";
 import rehypeRaw from "rehype-raw";
+import rehypeKatex from "rehype-katex";
+import remarkMath from "remark-math";
+import "katex/dist/katex.min.css";
 import SimpleButton from "../components/SimpleButton";
 import GeneratingDotsAnimation from "@/components/GeneratingDotsAnimation";
 import InputContainer from "@/components/InputContainer";
@@ -173,7 +176,8 @@ async function doAiMagic(currentPrompt: PromptState, setCurrentPrompt: (screensh
         + ` The image size is ${currentPrompt.width}x${currentPrompt.height} (width x height).`
         + " To use the highlight tool, use the following HTML-like format: `<highlight x=100 y=100 width=200 height=200>Your label here</highlight>`"
         + " where x and y are the coordinates of the top-left corner, width and height are the size of the highlight area, and the text label is the text you want to display alongside."
-        + " Make your highlight areas small and accurate as possible."
+        + " The highlight area should be on top of what you want to highlight. "
+        + " Make your highlight areas as small as possible and as accurate as possible."
         + " You can use this tool multiple times in a single response if needed, but do not overuse it (so we can avoid image clutter). The text label should be short and consise."
     },
     ...context
@@ -289,7 +293,7 @@ export default function ScreenshotOverlay() {
 
   return (
     <HoveredMarkerProvider>
-      {currentPrompt && <div className='absolute m-0 p-4 w-[500px] min-h-[40px] max-h-[100%] overflow-y-auto overflow-x-hidden bottom-[166px] box-border left-1/2 transform -translate-x-1/2 rounded-3xl flex flex-col gap-2 justify-center items-center bg-black/70 backdrop-blur-sm'>
+      {currentPrompt && <div className='absolute m-0 p-4 w-[600px] min-h-[40px] max-h-[100%] overflow-y-visible overflow-x-visible bottom-[166px] box-border left-1/2 transform -translate-x-1/2 rounded-3xl flex flex-col gap-2 justify-center items-center bg-black/70 backdrop-blur-sm'>
         {currentPrompt && currentPrompt.imageDataUrl && <ImageWithMarkers currentPrompt={currentPrompt} />}
         {currentPrompt && <ChatRenderer currentPrompt={currentPrompt} />}
         {isGenerating && <GeneratingDotsAnimation />}
@@ -306,7 +310,7 @@ function ImageWithMarkers({ currentPrompt }: { currentPrompt: PromptState }) {
   const { hoveredMarker, setHoveredMarker } = useHoveredMarker();
 
   return <div className="max-w-full max-h-[200px] relative">
-    <img src={currentPrompt.imageDataUrl} alt="Screenshot" className="max-w-full max-h-[200px] h-auto object-contain rounded-3xl border-white/10 border-[2px] border-solid fade-in-200" />
+    <img src={currentPrompt.imageDataUrl} alt="Screenshot" className="max-w-full max-h-[180px] h-auto object-contain rounded-3xl border-white/10 border-[2px] border-solid fade-in-200" />
     {currentPrompt.markers?.map((marker, index) => {
       const isHovered = hoveredMarker == marker;
       const onMouseOver = () => {
@@ -342,16 +346,32 @@ function ImageWithMarkers({ currentPrompt }: { currentPrompt: PromptState }) {
   </div>
 }
 
+export const preprocessLaTeX = (content: string) => {
+  // Replace block-level LaTeX delimiters \[ \] with $$ $$  
+  const blockProcessedContent = content.replace(
+    /\\\[(.*?)\\\]/gs,
+    (_, equation) => `$$${equation}$$`,
+  );
+  // Replace inline LaTeX delimiters \( \) with $ $
+  const inlineProcessedContent = blockProcessedContent.replace(
+    /\\\((.*?)\\\)/gs,
+    (_, equation) => `$${equation}$`,
+  );
+  return inlineProcessedContent;
+};
+
 function ChatRenderer({ currentPrompt }: { currentPrompt: PromptState }) {
   const { hoveredMarker, setHoveredMarker } = useHoveredMarker();
+  console.log(currentPrompt.context);
 
   return (
     <>
       {currentPrompt.context?.map((msg, idx) => (
-        <div className={msg.role == 'user' ? "m-0 px-2 box-border w-full rounded-lg flex justify-end" : "m-0 p-0 w-full"}>
+        <div className={msg.role == 'user' ? "m-0 px-2 box-border w-full rounded-lg flex justify-end text-[14px]" : "m-0 p-0 w-full text-[14px]"}>
           <Markdown
             key={idx}
-            rehypePlugins={[rehypeRaw]}
+            rehypePlugins={[rehypeRaw, rehypeKatex]}
+            remarkPlugins={[remarkMath]}
             disallowedElements={['script']}
             components={{
               code(props) {
@@ -428,7 +448,7 @@ function ChatRenderer({ currentPrompt }: { currentPrompt: PromptState }) {
               td: ({ children }) => <td className="my-[4px]">{children}</td>,
             }}
           >
-            {msg.content}
+            {preprocessLaTeX(msg.content || '')}
           </Markdown>
         </div>
       ))}

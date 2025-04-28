@@ -24,11 +24,14 @@
     "electron-updater": "^6.3.9",
     "image-size": "^2.0.2",
     "jotai": "^2.12.3",
+    "katex": "^0.16.22",
     "ollama": "^0.5.14",
     "openai": "^4.94.0",
     "react-markdown": "^10.1.0",
     "react-syntax-highlighter": "^15.6.1",
+    "rehype-katex": "^7.0.1",
     "rehype-raw": "^7.0.0",
+    "remark-math": "^6.0.0",
     "sharp": "^0.34.1"
   },
   "devDependencies": {
