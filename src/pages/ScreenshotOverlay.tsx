@@ -153,7 +153,7 @@ async function doAiMagic(currentPrompt: PromptState, setCurrentPrompt: (screensh
         content.push({
           type: 'input_image',
           image_url: message.image_url,
-          detail: 'auto'
+          detail: 'high'
         })
       }
       context.push({
@@ -171,14 +171,15 @@ async function doAiMagic(currentPrompt: PromptState, setCurrentPrompt: (screensh
     {
       role: "system",
       content: `Today's date is ${new Date().toLocaleDateString()}. `
-        + "You are a helpful assistant."
+        + "You are a helpful assistant that can help with a wide range of tasks."
         + " You might be provided with an image. When communicating with the user, you may highlight things on the image to help them understand the image better."
-        + ` The image size is ${currentPrompt.width}x${currentPrompt.height} (width x height).`
-        + " To use the highlight tool, use the following HTML-like format: `<highlight x=100 y=100 width=200 height=200>Your label here</highlight>`"
+        + ` The size of the image is ${currentPrompt.width}x${currentPrompt.height} (width x height). You should transform your coordinates to fit the image size.`
+        + " To use the highlight tool, use the following HTML-like format: ```<highlight x=100 y=100 width=200 height=200>Your label here</highlight>```"
         + " where x and y are the coordinates of the top-left corner, width and height are the size of the highlight area, and the text label is the text you want to display alongside."
         + " The highlight area should be on top of what you want to highlight. "
         + " Make your highlight areas as small as possible and as accurate as possible."
         + " You can use this tool multiple times in a single response if needed, but do not overuse it (so we can avoid image clutter). The text label should be short and consise."
+        + " An example of highlight: Let's say there is a login button at x: 248, y: 248, and has a width of 200 and height of 50. You can respond with: `<highlight x=248 y=248 width=200 height=50>Login Button</highlight>`"
     },
     ...context
   ]
@@ -365,7 +366,7 @@ function ChatRenderer({ currentPrompt }: { currentPrompt: PromptState }) {
   console.log(currentPrompt.context);
 
   return (
-    <>
+    <div className="w-full h-full overflow-y-auto">
       {currentPrompt.context?.map((msg, idx) => (
         <div className={msg.role == 'user' ? "m-0 px-2 box-border w-full rounded-lg flex justify-end text-[14px]" : "m-0 p-0 w-full text-[14px]"}>
           <Markdown
@@ -452,6 +453,6 @@ function ChatRenderer({ currentPrompt }: { currentPrompt: PromptState }) {
           </Markdown>
         </div>
       ))}
-    </>
+    </div>
   );
 }
