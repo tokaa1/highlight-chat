@@ -363,10 +363,25 @@ export const preprocessLaTeX = (content: string) => {
 
 function ChatRenderer({ currentPrompt }: { currentPrompt: PromptState }) {
   const { hoveredMarker, setHoveredMarker } = useHoveredMarker();
-  console.log(currentPrompt.context);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    if (isHovered) {
+      nativeApi.enableMouse();
+    } else {
+      nativeApi.disableMouse();
+    }
+    return () => {
+      nativeApi.disableMouse();
+    }
+  }, [isHovered]);
 
   return (
-    <div className="w-full h-full overflow-y-auto">
+    <div 
+      className="w-full max-h-[40vh] overflow-y-auto"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       {currentPrompt.context?.map((msg, idx) => (
         <div className={msg.role == 'user' ? "m-0 px-2 box-border w-full rounded-lg flex justify-end text-[14px]" : "m-0 p-0 w-full text-[14px]"}>
           <Markdown
@@ -396,6 +411,7 @@ function ChatRenderer({ currentPrompt }: { currentPrompt: PromptState }) {
                         margin: 0,
                         padding: '8px',
                         boxSizing: 'border-box',
+                        userSelect: 'text'
                       }}
                     />
                   </>
