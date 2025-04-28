@@ -158,7 +158,7 @@ app.whenReady().then(() => {
 
   // register global shortcut cmd/ctrl + B
   globalShortcut.register(process.platform === 'darwin' ? 'CommandOrControl+B' : 'Ctrl+B', toggleWindowVisibility);
-  globalShortcut.register(process.platform === 'darwin' ? 'CommandOrControl+H' : 'Ctrl+H', () => {
+  const doScreenshot = () => {
     if (!win)
       return;
     if (win.isVisible())
@@ -167,6 +167,9 @@ app.whenReady().then(() => {
       win!.webContents.send('screenshot', screenshot);
     });
     showWindow();
+  }
+  globalShortcut.register(process.platform === 'darwin' ? 'CommandOrControl+H' : 'Ctrl+H', () => {
+    doScreenshot();
   });
   globalShortcut.register(process.platform === 'darwin' ? 'CommandOrControl+D' : 'Ctrl+D', () => {
     if (!win)
@@ -182,6 +185,14 @@ app.whenReady().then(() => {
   ipcMain.handle('disable-mouse', () => {
     win?.setIgnoreMouseEvents(true, { forward: true });
   })
+  ipcMain.handle('do-screenshot', () => {
+    doScreenshot();
+  });
+  ipcMain.handle('reset-screenshot', () => {
+    if (!win)
+      return;
+    win.webContents.send('reset-screenshot');
+  });
 })
 
 // Unregister shortcuts when app quits

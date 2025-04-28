@@ -8,20 +8,21 @@ export default function Header() {
     ...futuristicGradientStyle,
   }}>
     <div className='w-full h-[40px] text-[11px] items-center justify-center flex flex-row gap-2'>
-      <HeaderButton text='Screenshot' onClick={() => {}}>
+      <HeaderButton text='Screenshot' tooltip='Screenshot your screen and add it to chat' onClick={() => {
+        nativeApi.doScreenshot();
+      }}>
         <img src="/screenshot.png" alt="Screenshot" className="w-5 h-5 invert" />
+      </HeaderButton>
+      <HeaderButton text='Reset' tooltip='Resets the current chat (if any)' onClick={() => {
+        nativeApi.resetScreenshot();
+      }}>
+        <img src="/reset.png" alt="Reset" className="w-5 h-5 invert" />
       </HeaderButton>
     </div>
     <div className='w-full h-[26px] text-[11px] items-center justify-center flex gap-2'>
       <span className='flex items-center'>
         <span className='mr-1.5 text-white'>Screenshot</span>
         <span className='bg-white px-1 rounded mr-1 text-black'>⌘</span>
-        <span className='bg-white px-1 rounded mr-1 text-black'>H</span>
-      </span>
-      <span className='flex items-center'>
-        <span className='mr-1.5 text-white'>Selection</span>
-        <span className='bg-white px-1 rounded mr-1 text-black'>⌘</span>
-        <span className='bg-white px-1 rounded mr-1 text-black'>⇧</span>
         <span className='bg-white px-1 rounded mr-1 text-black'>H</span>
       </span>
       <span className='flex items-center'>
@@ -38,7 +39,7 @@ export default function Header() {
   </div>
 }
 
-function HeaderButton({ children, text, onClick }: { children: React.ReactNode, text: string, onClick: () => void }) {
+function HeaderButton({ children, text, tooltip, onClick }: { children: React.ReactNode, text: string, tooltip: string, onClick: () => void }) {
   const [isHovered, setIsHovered] = useState(false);
   
   const onMouseEnter = () => {
@@ -62,9 +63,9 @@ function HeaderButton({ children, text, onClick }: { children: React.ReactNode, 
       {children}
       
       {isHovered && (
-        <div className="absolute top-[-40px] left-1/2 transform -translate-x-1/2 px-3 py-2 bg-neutral-900/90 backdrop-blur-md rounded-lg text-white text-xs shadow-lg border border-white/10 transition-all duration-200">
-          <div className="z-[1002] absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-3 h-3 bg-neutral-900/90 rotate-45 border-r border-b border-white/10"></div>
-          {text}
+        <div className="absolute bottom-[-40px] left-1/2 transform -translate-x-1/2 px-3 py-2 bg-neutral-900/90 backdrop-blur-md rounded-lg text-white text-xs shadow-lg border border-white/10 transition-all duration-200 whitespace-nowrap">
+          <div className="z-[1002] absolute top-[-6px] left-1/2 transform -translate-x-1/2 w-3 h-3 bg-neutral-900/90 rotate-45 border-l border-t border-white/10"></div>
+          {tooltip}
         </div>
       )}
     </div>

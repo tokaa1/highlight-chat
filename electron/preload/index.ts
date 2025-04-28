@@ -17,7 +17,8 @@ export type PreloadAPI = {
   disableMouse: () => void
   onWindowVisibilityChange: (callback: (isVisible: boolean) => void) => void
   // returns image b64 url
-  takeScreenshot: () => Promise<ScreenshotResponse>
+  doScreenshot: () => Promise<void>
+  resetScreenshot: () => Promise<void>
   requestScreenshotPermission: () => Promise<void>
   isScreenshotPermissionGranted: () => Promise<boolean>
 }
@@ -51,7 +52,8 @@ contextBridge.exposeInMainWorld('nativeApi', {
   },
   enableMouse: () => ipcRenderer.invoke('enable-mouse'),
   disableMouse: () => ipcRenderer.invoke('disable-mouse'),
-  takeScreenshot: () => ipcRenderer.invoke('take-screenshot') as Promise<ScreenshotResponse>,
+  doScreenshot: () => ipcRenderer.invoke('do-screenshot') as Promise<void>,
+  resetScreenshot: () => ipcRenderer.invoke('reset-screenshot') as Promise<void>,
   onWindowVisibilityChange: (callback: (isVisible: boolean) => void) => {
     ipcRenderer.on('window-visibility-changed', (_, isVisible) => callback(isVisible));
   },
