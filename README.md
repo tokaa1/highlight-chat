@@ -1,5 +1,5 @@
 # Highlight Chat
-An overlay AI desktop app that screenshots and highlights its answer so fast, it's like cheating.
+An overlay AI desktop app that screenshots and highlights its answer.
 
 (Demo on a public practice test)
 
