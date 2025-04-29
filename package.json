@@ -1,8 +1,8 @@
 {
-  "name": "where-is-that-ai",
+  "name": "highlight-chat",
   "version": "2.2.0",
   "main": "dist-electron/main/index.js",
-  "description": "highlight",
+  "description": "Highlight Chat: screenshot so fast it's almost AGI (no it's not)",
   "author": "tokaa1 <tokaa1@proton.me>",
   "license": "MIT",
   "private": true,
