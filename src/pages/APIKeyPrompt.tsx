@@ -55,7 +55,7 @@ function KeyInput({onEnter, apiKey}: {onEnter: (key: string) => void, apiKey: st
       <SimpleButton className='mt-2' onClick={() => {
         onEnter(inputRef.current?.value || '');
       }}>
-        <span className='text-white text-xs font-light italic text-center'>Done!</span>
+        <span className='text-white text-xs font-light italic text-center animate-pulse'>Done!</span>
       </SimpleButton>
     )}
   </>;
