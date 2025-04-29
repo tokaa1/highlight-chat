@@ -13,6 +13,7 @@ import "katex/dist/katex.min.css";
 import SimpleButton from "../components/SimpleButton";
 import GeneratingDotsAnimation from "@/components/GeneratingDotsAnimation";
 import InputContainer from "@/components/InputContainer";
+import { useApiKey } from "@/contexts/openai";
 
 interface MarkerStyle {
   color: MarkerColor;
@@ -129,13 +130,7 @@ function HoveredMarkerProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-const openai = new OpenAI({
-  // ok we're gonna have to delete this git repo, key is legit right here
-  apiKey: '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',
-  dangerouslyAllowBrowser: true// building
-});
-
-async function doAiMagic(currentPrompt: PromptState, setCurrentPrompt: (screenshot: PromptState) => void) {
+async function doAiMagic(currentPrompt: PromptState, openai: OpenAI, setCurrentPrompt: (screenshot: PromptState) => void) {
   if (!currentPrompt)
     return;
 
@@ -256,6 +251,8 @@ export default function ScreenshotOverlay() {
   const [currentPrompt, setCurrentPrompt] = useState<PromptState | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isFollowingUp, setIsFollowingUp] = useState(false);
+  const { openai } = useApiKey();
+
   useEffect(() => {
     nativeApi.on('screenshot', (_ev, screenshot: ScreenshotResponse) => {
       const newCurrentPrompt = screenshot as PromptState;
@@ -266,7 +263,7 @@ export default function ScreenshotOverlay() {
       }];
       setCurrentPrompt(newCurrentPrompt);
       setIsGenerating(true);
-      doAiMagic(newCurrentPrompt, setCurrentPrompt).finally(() => setIsGenerating(false));
+      doAiMagic(newCurrentPrompt, openai, setCurrentPrompt).finally(() => setIsGenerating(false));
       setIsFollowingUp(false);
     });
     nativeApi.on('reset-screenshot', () => {
@@ -277,7 +274,7 @@ export default function ScreenshotOverlay() {
       nativeApi.removeAllListeners('screenshot');
       nativeApi.removeAllListeners('reset-screenshot');
     }
-  }, []);
+  }, [openai]);
 
   const onPromptEnter = (prompt: string) => {
     setIsGenerating(true);
@@ -289,7 +286,7 @@ export default function ScreenshotOverlay() {
     }
     setCurrentPrompt(newCurrentPrompt);
     setIsFollowingUp(false);
-    doAiMagic(newCurrentPrompt, setCurrentPrompt).finally(() => setIsGenerating(false));
+    doAiMagic(newCurrentPrompt, openai, setCurrentPrompt).finally(() => setIsGenerating(false));
   }
 
   return (
@@ -347,6 +344,7 @@ function ImageWithMarkers({ currentPrompt }: { currentPrompt: PromptState }) {
   </div>
 }
 
+// thanks google
 export const preprocessLaTeX = (content: string) => {
   // Replace block-level LaTeX delimiters \[ \] with $$ $$  
   const blockProcessedContent = content.replace(

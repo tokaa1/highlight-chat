@@ -2,8 +2,11 @@ import { useVisibility } from "@/contexts/visibility";
 import { nativeApi } from "@/util/native";
 import { futuristicGradientStyle } from "@/util/styling";
 import { useState } from "react";
+import { useApiKey } from "@/contexts/openai";
 
 export default function Header() {
+  const { setOpenKeyPrompt, isOpenKeyPromptOpen } = useApiKey();
+
   return <div className='font-sans pointer-events-auto px-8 box-border w-[500px] h-[80px] flex flex-col bg-neutral-950/10 backdrop-blur-md rounded-[35px] absolute bottom-[80px] left-1/2 transform -translate-x-1/2 shadow-lg items-center justify-center' style={{
     ...futuristicGradientStyle,
   }}>
@@ -18,20 +21,25 @@ export default function Header() {
       }}>
         <img src="/reset.png" alt="Reset" className="w-5 h-5 invert" />
       </HeaderButton>
+      <HeaderButton text='Settings' tooltip='Opens settings' onClick={() => {
+        setOpenKeyPrompt(!isOpenKeyPromptOpen);
+      }}>
+        <img src="/settings.png" alt="Settings" className="w-5 h-5 invert" />
+      </HeaderButton>
     </div>
-    <div className='w-full h-[26px] text-[11px] items-center justify-center flex gap-2'>
+    <div className='w-full h-[26px] text-[11px] items-center justify-center flex gap-[50px]'>
       <span className='flex items-center'>
-        <span className='mr-1.5 text-white'>Screenshot</span>
+        {/* <span className='mr-1.5 text-white'>Screenshot</span> */}
         <span className='bg-white px-1 rounded mr-1 text-black'>⌘</span>
         <span className='bg-white px-1 rounded mr-1 text-black'>H</span>
       </span>
       <span className='flex items-center'>
-        <span className='mr-1.5 text-white'>Reset</span>
+        {/* <span className='mr-1.5 text-white'>Reset</span> */}
         <span className='bg-white px-1 rounded mr-1 text-black'>⌘</span>
         <span className='bg-white px-1 rounded mr-1 text-black'>D</span>
       </span>
       <span className='flex items-center'>
-        <span className='mr-1.5 text-neutral-100'>Show/Hide</span>
+        {/* <span className='mr-1.5 text-neutral-100'>Show/Hide</span> */}
         <span className='bg-white px-1 rounded mr-1 text-black'>⌘</span>
         <span className='bg-white px-1 rounded mr-1 text-black'>B</span>
       </span>
