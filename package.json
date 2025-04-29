@@ -1,5 +1,5 @@
 {
-  "name": "highlight",
+  "name": "where-is-that-ai",
   "version": "2.2.0",
   "main": "dist-electron/main/index.js",
   "description": "highlight",
