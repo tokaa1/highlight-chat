@@ -3,8 +3,7 @@ An overlay AI desktop app that screenshots and highlights its answer.
 
 (Demo on a public practice test)
 
-https://github.com/user-attachments/assets/3525e52a-20d1-4d47-9ee1-93eb16a763ed
-
+https://github.com/user-attachments/assets/81938d95-34e2-48d3-b307-b9d73a83a054
 
 This usage of LLM's is *experimental*, and can get quite wrong. Hopefully it'll get better by GPT-6 💀.
 
