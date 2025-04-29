@@ -4,12 +4,13 @@ import ScreenshotOverlay from './pages/ScreenshotOverlay';
 import { VisibilityContext } from './contexts/visibility';
 import Header from './pages/Header';
 import { nativeApi } from './util/native';
-import APIKeyPrompt from './pages/APIKeyPrompt';
-import { ApiKeyProvider } from './contexts/openai';
+import Settings from './pages/Settings';
+import { OpenAIProvider } from './contexts/openai';
+import usePages from './contexts/pages';
 
 export default function App() {
   const [isVisible, setIsVisible] = useState(false);
-  const [isApiSettingsOpen, setIsApiSettingsOpen] = useState(false);
+  const { isOpen } = usePages();
 
   useEffect(() => {
     const handleVisibilityChange = (visible: boolean) => {
@@ -22,7 +23,7 @@ export default function App() {
   //absolute bottom-20 left-1/2 transform -translate-x-1/2
   return (
     <VisibilityContext.Provider value={isVisible}>
-      <ApiKeyProvider setOpenKeyPrompt={setIsApiSettingsOpen} isOpenKeyPromptOpen={isApiSettingsOpen}>
+      <OpenAIProvider>
         <div
           className='h-full w-full m-0 p-0'
           style={{
@@ -31,11 +32,11 @@ export default function App() {
             transform: `translateY(${isVisible ? '0' : '100px'})`,
           }}
         >
-          {isApiSettingsOpen && <APIKeyPrompt />}
+          {isOpen('settings') && <Settings />}
           <Header />
           <ScreenshotOverlay />
         </div>
-      </ApiKeyProvider>
+      </OpenAIProvider>
     </VisibilityContext.Provider>
   );
 }

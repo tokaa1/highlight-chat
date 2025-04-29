@@ -13,7 +13,7 @@ import "katex/dist/katex.min.css";
 import SimpleButton from "../components/SimpleButton";
 import GeneratingDotsAnimation from "@/components/GeneratingDotsAnimation";
 import InputContainer from "@/components/InputContainer";
-import { useApiKey } from "@/contexts/openai";
+import { useOpenAI } from "@/contexts/openai";
 
 interface MarkerStyle {
   color: MarkerColor;
@@ -251,7 +251,7 @@ export default function ScreenshotOverlay() {
   const [currentPrompt, setCurrentPrompt] = useState<PromptState | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isFollowingUp, setIsFollowingUp] = useState(false);
-  const { openai } = useApiKey();
+  const { openai } = useOpenAI();
 
   useEffect(() => {
     nativeApi.on('screenshot', (_ev, screenshot: ScreenshotResponse) => {
@@ -291,7 +291,7 @@ export default function ScreenshotOverlay() {
 
   return (
     <HoveredMarkerProvider>
-      {currentPrompt && <div className='absolute m-0 p-4 w-[600px] min-h-[40px] max-h-[100%] overflow-y-visible overflow-x-visible bottom-[166px] box-border left-1/2 transform -translate-x-1/2 rounded-3xl flex flex-col gap-2 justify-center items-center bg-black/70 backdrop-blur-sm'>
+      {currentPrompt && <div className='absolute m-0 p-4 w-[600px] min-h-[40px] max-h-[100%] overflow-y-visible overflow-x-visible bottom-[166px] box-border left-1/2 transform -translate-x-1/2 rounded-[35px] flex flex-col gap-2 justify-center items-center bg-black/70 backdrop-blur-sm'>
         {currentPrompt && currentPrompt.imageDataUrl && <ImageWithMarkers currentPrompt={currentPrompt} />}
         {currentPrompt && <ChatRenderer currentPrompt={currentPrompt} />}
         {isGenerating && <GeneratingDotsAnimation />}
@@ -381,7 +381,7 @@ function ChatRenderer({ currentPrompt }: { currentPrompt: PromptState }) {
       onMouseLeave={() => setIsHovered(false)}
     >
       {currentPrompt.context?.map((msg, idx) => (
-        <div className={msg.role == 'user' ? "m-0 px-2 box-border w-full rounded-lg flex justify-end text-[14px]" : "m-0 p-0 w-full text-[14px]"}>
+        <div key={idx} className={msg.role == 'user' ? "m-0 px-2 box-border w-full rounded-lg flex justify-end text-[14px]" : "m-0 p-0 w-full text-[14px]"}>
           <Markdown
             key={idx}
             rehypePlugins={[rehypeRaw, rehypeKatex]}
