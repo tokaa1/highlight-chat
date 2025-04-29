@@ -15,7 +15,6 @@ export default function APIKeyPrompt() {
     const timer = setTimeout(() => setIsVisible(true), 50);
     return () => {
       clearTimeout(timer);
-      nativeApi.disableMouse();
     };
   }, []);
 
