@@ -130,8 +130,7 @@ async function createWindow() {
   })
 
   //win.setContentProtection(true);
-  //win.setIgnoreMouseEvents(true, {forward: true});
-  win.webContents.toggleDevTools();
+  win.setIgnoreMouseEvents(true, {forward: true});
   win.webContents.on('before-input-event', (event, input) => {
     if (input.key === 'F12') {
       event.preventDefault();
@@ -183,7 +182,7 @@ app.whenReady().then(() => {
     win?.setIgnoreMouseEvents(false, { forward: true });
   })
   ipcMain.handle('disable-mouse', () => {
-    //win?.setIgnoreMouseEvents(true, { forward: true });
+    win?.setIgnoreMouseEvents(true, { forward: true });
   })
   ipcMain.handle('do-screenshot', () => {
     doScreenshot();
